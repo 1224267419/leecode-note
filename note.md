@@ -355,3 +355,235 @@ class Solution:
         return result
 ```
 
+## [18. 四数之和](https://leetcode.cn/problems/4sum/) TODO
+
+**n数之和就是在2数之和基础上套上循环**,降低一个n复杂度
+
+```python
+class Solution:
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        n=len(nums)
+        nums.sort()
+        if n<4:
+            return[]
+        res=[]
+        
+        for i in range(n-3):
+            #防止重复
+            if i > 0 and nums[i] == nums[i-1]:
+                continue
+
+            for j in range(i+1,n-2):
+                #防止重复
+                if j > i+1 and nums[j] == nums[j-1]:
+                    continue
+                    
+                left1,right1=j+1,n-1
+                while left1<right1:
+                    s=nums[i]+nums[j]+nums[left1]+nums[right1]
+                    if s==target:
+                        res.append([nums[i],nums[j],nums[left1],nums[right1]])
+                        ##防止重复
+                        while left1<right1 and nums[left1]==nums[left1+1]:
+                            left1+=1
+                        left1+=1
+                        ##防止重复
+                        while  right1>left1 and  nums[right1]==nums[right1-1]:
+                            right1-=1
+                        right1-=1
+                    elif s<target:
+                        while  left1<right1 and nums[left1]==nums[left1+1]:
+                            left1+=1
+                        left1+=1
+                    elif s>target:
+                        while right1>left1 and nums[right1]==nums[right1-1]:
+                            right1-=1
+                        right1-=1
+        return res
+                
+```
+
+
+
+2.set做法,性能比上面略差,空间O(n)
+
+```python
+class Solution(object):
+    def fourSum(self, nums, target):
+        """
+        :type nums: List[int]
+        :type target: int
+        :rtype: List[List[int]]
+        """
+        # 创建一个字典来存储输入列表中每个数字的频率
+        freq = {}
+        for num in nums:
+            freq[num] = freq.get(num, 0) + 1
+        
+        # 创建一个集合来存储最终答案，并遍历4个数字的所有唯一组合
+        ans = set()
+        for i in range(len(nums)):
+            for j in range(i + 1, len(nums)):
+                for k in range(j + 1, len(nums)):
+                    val = target - (nums[i] + nums[j] + nums[k])
+                    if val in freq:
+                        # 确保没有重复
+                        count = (nums[i] == val) + (nums[j] == val) + (nums[k] == val)
+                        if freq[val] > count:
+                            ans.add(tuple(sorted([nums[i], nums[j], nums[k], val])))
+        
+        return [list(x) for x in ans]
+```
+
+# 字符串
+
+## [344. 反转字符串](https://leetcode.cn/problems/reverse-string/)
+
+```python
+class Solution:
+    def reverseString(self, s: List[str]) -> None:
+        """
+        Do not return anything, modify s in-place instead.
+        """
+        n=len(s)
+        for i in range(n//2):
+            s[i],s[n-i-1]=s[n-i-1],s[i]
+        
+```
+
+## [541. 反转字符串 II](https://leetcode.cn/problems/reverse-string-ii/) TODO
+
+### 自己的代码:
+
+```python
+class Solution:
+    def reverseStr(self, s: str, k: int) -> str:
+        n=len(s)
+        times=n//(2*k)
+        #2k部分
+        for i in range(times):
+            for j in range(k):
+                # 你的代码里所有这种交换写法都会触发 TypeError
+                #Python 中 str 类型的字符串是不可修改的，不能通过 s[index] = 新值 的方式修改某个位置的字符，也不能直接交换两个位置的字符。
+                #应该先变成list再吃力
+                s[i*2*k+j],s[i*2*k+k-j-1]=s[i*2*k+k-j-1],s[i*2*k+j]
+        #剩余部分x
+        i=times
+        x=n%(2*k)
+        if x >k:
+            for j in range(k):
+                s[i*2*k+j],s[i*2*k+k-j-1]=s[i*2*k+k-j-1],s[i*2*k+j]
+        else :
+            for j in range(x):
+                
+                s[i*2*k+j],s[n-j-1]=s[n-i-1],s[i*2*k+j]
+                
+                #正确的应该是
+                s[i*2*k+j],s[n-j-1]=s[n-j-1],s[i*2*k+j]
+```
+
+修改后
+
+```python
+class Solution:
+    def reverseStr(self, s: str, k: int) -> str:
+        n = len(s)
+        # 修正1：字符串转列表，解决不可变问题
+        s_list = list(s)
+        times = n // (2 * k)
+        # 处理完整的2k段
+        for i in range(times):
+            start = i * 2 * k
+            # 反转[start, start+k)区间，用切片替代手动交换，简洁高效
+            s_list[start:start+k] = s_list[start:start+k][::-1]
+        # 处理剩余部分
+        x = n % (2 * k)
+        start = times * 2 * k
+        if x > k:
+            # 剩余>=k个，反转前k个
+            s_list[start:start+k] = s_list[start:start+k][::-1]
+        else:
+            # 剩余<k个，反转全部剩余，修正2：修正你的下标笔误问题
+            s_list[start:n] = s_list[start:n][::-1]
+        # 列表转回字符串
+        return ''.join(s_list)
+```
+
+
+
+
+
+Python 的**切片语法**可以一行实现任意区间的反转，简洁 + 高效，比如 `arr[a:b] = arr[a:b][::-1]` 就能反转列表中 `[a,b)` 区间的元素。
+
+
+
+## [151. 反转字符串中的单词](https://leetcode.cn/problems/reverse-words-in-a-string/) TODO
+
+本题思路总结：1.先去除字符串多余的空格 2.再将去除空格后的字符串整个反转 3。最后在反转后的字符串中反转单词
+
+```python
+class Solution:
+    def reverseWords(self, s: str) -> str:
+        # s.split()用于将字符串按照指定的分隔符切割，返回一个字符串列表
+        return " ".join(reversed(s.split()))
+```
+
+
+
+## [459. 重复的子字符串](https://leetcode.cn/problems/repeated-substring-pattern/)
+
+```
+class Solution:
+    def repeatedSubstringPattern(self, s: str) -> bool:
+        slist=list(s)
+        n=len(s)
+        if n<1:
+            return True
+        for i in range(1,n//2+1):
+            if n%i==0:
+                if s==s[:i]*(n//i):
+                    return True
+        return False
+```
+
+## [28. 找出字符串中第一个匹配项的下标](https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/)
+
+kmp算法实现,用内置函数套路一下
+
+1.直接暴力匹配 O(m*n)
+
+```python
+class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        n = len(haystack)
+        m=len(needle)
+        for i in range(n):
+            if needle==haystack[i:i+m]:
+                return i
+        return -1
+```
+
+2.找第一个子串:
+
+### ✅ 1. `str.find(sub)` → 推荐（本题最优解）
+
+- 找不到子串 → 返回 `-1`
+- 无报错风险，**完全匹配本题需求**，是最常用的查找方法
+
+### ✅ 2. `str.index(sub)` → 慎用（本题不能用）
+
+- 找到子串 → 返回第一次出现的下标（和 find 一致）
+- **找不到子串 → 直接抛出 ValueError 异常** ❌
+- 本题如果用 `return haystack.index(needle)`，会在匹配失败时报错，无法通过测试用例！
+
+### ✅ 3. `str.rfind(sub)` → 反向查找
+
+- 功能：**从右往左**查找子串第一次出现的下标
+- 例：`"ababa".rfind("aba")` → 返回 2 （最右侧的 aba 起始下标）
+
+```python
+class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        return  haystack.find(needle)
+```
+
