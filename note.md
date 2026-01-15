@@ -565,18 +565,18 @@ class Solution:
 
 2.找第一个子串:
 
-### ✅ 1. `str.find(sub)` → 推荐（本题最优解）
+✅ 1. `str.find(sub)` → 推荐（本题最优解）
 
 - 找不到子串 → 返回 `-1`
 - 无报错风险，**完全匹配本题需求**，是最常用的查找方法
 
-### ✅ 2. `str.index(sub)` → 慎用（本题不能用）
+✅ 2. `str.index(sub)` → 慎用（本题不能用）
 
 - 找到子串 → 返回第一次出现的下标（和 find 一致）
 - **找不到子串 → 直接抛出 ValueError 异常** ❌
 - 本题如果用 `return haystack.index(needle)`，会在匹配失败时报错，无法通过测试用例！
 
-### ✅ 3. `str.rfind(sub)` → 反向查找
+✅ 3. `str.rfind(sub)` → 反向查找
 
 - 功能：**从右往左**查找子串第一次出现的下标
 - 例：`"ababa".rfind("aba")` → 返回 2 （最右侧的 aba 起始下标）
@@ -585,5 +585,312 @@ class Solution:
 class Solution:
     def strStr(self, haystack: str, needle: str) -> int:
         return  haystack.find(needle)
+```
+
+# 栈+队列
+
+## [20. 有效的括号](https://leetcode.cn/problems/valid-parentheses/)
+
+难度不大
+
+```python
+class Solution:
+    def isValid(self, s: str) -> bool:
+        arr=[]
+        dic={'(':')','{':'}','[':']'}
+        for i in s:
+
+            if i in [')','}',']']:
+                if not arr:
+                    return False
+                else:
+                    j=arr.pop()
+                    if dic[j]!=i:
+                        return False
+                    else:
+                        continue
+            else:
+                    arr.append(i)
+        if not arr:
+            return True
+        return False
+```
+
+优化一下写法
+
+```python
+class Solution:
+    def isValid(self, s: str) -> bool:
+        dic = {'(' : ')', '[' : ']', '{' : '}', '?' : '?'}
+        stack = ['?']
+        for c in s:
+            if c in dic: stack.append(c)
+            elif dic[stack.pop()] != c: return False
+        return len(stack) == 1 
+```
+
+
+
+## [1047. 删除字符串中的所有相邻重复项](https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string/) TODO
+
+使用栈和队列处理更轻松
+
+```python
+class Solution:
+    def removeDuplicates(self, s: str) -> str:
+        arr=[]
+        sList=list(s)
+        for i in s:
+            if arr:
+                if arr[-1]==i:
+                    arr.pop()
+                else:
+                    arr.append(i)
+            else:
+                arr.append(i)
+        return ''.join(arr)
+```
+
+
+
+
+
+## [150. 逆波兰表达式求值](https://leetcode.cn/problems/evaluate-reverse-polish-notation/)
+
+```python
+class Solution:
+    def evalRPN(self, tokens: List[str]) -> int:
+        arr=[]
+        caculat=[ '+','-','*' , '/']
+        for i in tokens:
+            if i not in caculat:
+                arr.append(int(i))
+            else:
+                c1=arr.pop()
+                c2=arr.pop()
+                if i=='+':
+                    arr.append(c1+c2)
+                elif i=='-':
+                    arr.append(c2-c1)
+                elif i=='*':
+                    arr.append(c1*c2)
+                elif i=='/':
+                    arr.append(int(c2/c1))
+        return arr[0]
+```
+
+
+
+
+
+## [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/) TODO
+
+暴力,会超时(O(n*k)
+
+```python
+class Solution:
+    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
+        arr=[]
+        n=len(nums)
+        #可能有重复最大值,删去时要注意
+        for i in range(n-k+1):
+            arr.append(max(nums[i:i+k]))
+        return arr
+```
+
+参考答案
+
+```python
+class Solution:
+    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
+        # 
+        q=deque()
+        ans=[]
+        for i ,x in enumerate(nums):
+            #淘汰过期元素
+            while q and q[0]<=i-k:
+                q.popleft()
+            #淘汰无用元素
+            # 保证队列里的下标对应的数值严格单调递减
+            while q and nums[q[-1]]<x:
+                q.pop()
+            q.append(i)
+            #当 i 增长到 k-1 时，
+            # 说明第一个完整的窗口（长度为 k）已经形成了
+            if i>=k-1:
+                ans.append(nums[q[0]])
+        return ans
+```
+
+
+
+
+
+#### 双端队列操作
+
+```python
+from collections import deque
+
+# 创建一个空的deque
+d = deque()
+
+# 添加元素
+d.append('a')
+d.appendleft('b')
+print(d) # 输出: deque(['b', 'a'])
+
+# 移除元素
+d.pop()
+d.popleft()
+print(d) # 输出: deque([])
+```
+
+
+
+## [347. 前 K 个高频元素](https://leetcode.cn/problems/top-k-frequent-elements/) TODO
+
+o(NlogN) 整个排序
+
+```python
+import collections
+
+class Solution:
+    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
+        c = collections.Counter(nums)
+        # 按照频率 (c[x]) 降序排序，取前 k 个
+        sorted_keys = sorted(c.keys(), key=lambda x: c[x], reverse=True)
+        return sorted_keys[:k]
+```
+
+O(NlogK) 堆排序
+
+```python
+import collections
+import heapq
+
+class Solution:
+    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
+        c = collections.Counter(nums)
+        # heapq.nlargest 自动维护堆，根据 c.get (即频率) 来排序
+        # 通过 key 参数来指定一个函数，这个函数会在每个元素上被调用，
+        # 其返回值将作为排序的依据
+        return heapq.nlargest(k, c.keys(), key=c.get)
+```
+
+使用collections的内置函数
+
+```python
+import collections
+
+class Solution:
+    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
+        c = collections.Counter(nums)
+        # most_common(k) 返回如 [(1, 3), (2, 2)] 的形式
+        # 我们只需要取元组的第一个元素（即数字本身）
+        return [item[0] for item in c.most_common(k)]
+```
+
+# 二叉树
+
+## 递归
+
+```python
+class Solution:
+    def preorderTraversal(self, root: TreeNode) -> List[int]:
+        res = []
+        
+        def dfs(node):
+            if node is None:
+                return
+            res.append(node.val)
+            
+            dfs(node.left)
+            dfs(node.right)
+        dfs(root)
+        return res
+```
+
+前中后序接近,不赘述
+
+## 迭代
+
+借助**栈**实现
+
+
+
+### [144. 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/)
+
+```python
+from collections import deque
+
+class Solution:
+    def preorderTraversal(self, root: TreeNode) -> List[int]:
+        res = []
+        t=[]
+        if not root:
+            return []
+        t.append(root)
+
+        while t:
+            temp=t.pop()
+            
+            if temp.right:
+                t.append(temp.right)
+            if temp.left:
+                t.append(temp.left)
+            res.append(temp.val)
+        
+        return res
+```
+
+
+
+### [145. 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal/)
+
+```python
+
+class Solution:
+    def postorderTraversal(self, root: TreeNode) -> List[int]:
+        res = []
+        t=[]
+        if not root:
+            return []
+        t.append(root)
+
+        while t:
+            temp=t.pop()
+            if temp.left:
+                t.append(temp.left)
+            if temp.right:
+                t.append(temp.right)
+            res.append(temp.val)
+        res.reverse()
+        return res
+```
+
+先序后序比较简单,中序会复杂一点
+
+[94. 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/)
+
+```python
+class Solution:
+    def inorderTraversal(self, root: TreeNode) -> List[int]:
+        res =[]
+        stack=[]
+        if not root:
+            return []
+        #中节点,用于避免在左之前弹出
+        cur=root
+        while cur or stack:
+            if cur:
+                stack.append(cur)
+                cur=cur.left
+            else:
+                # 左边处理完,剩下中和右 , 中加入result
+                cur=stack.pop()
+                res.append(cur.val)
+                cur=cur.right
+        return res
+
 ```
 
