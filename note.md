@@ -894,3 +894,55 @@ class Solution:
 
 ```
 
+
+
+## [102. 二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/) TODO
+
+层序遍历应使用队列
+
+```python
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        if not root:
+            return []
+        res = []
+        # 语义化命名：queue=当前层队列，next_level=下一层节点，cur_level=当前层数值
+        queue = [root]
+        next_level = []
+        cur_level = []
+
+        while queue or next_level:
+            cur_level = []
+            next_level = []
+            while queue:
+                node = queue.pop(0)
+                cur_level.append(node.val)
+                if node.left:
+                    next_level.append(node.left)
+                if node.right:
+                    next_level.append(node.right)
+            res.append(cur_level)
+            queue = next_level.copy()
+        return res
+```
+
+官方解法,省去复制的时间和保存下一行的空间,更优秀
+
+```python
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        res = []
+        if not root: return res
+        queue = [root]
+        while queue:
+            level_size = len(queue) # 获取当前层节点数
+            cur_level = []
+            for _ in range(level_size): # 只遍历当前层的节点
+                node = queue.pop(0)
+                cur_level.append(node.val)
+                if node.left: queue.append(node.left)
+                if node.right: queue.append(node.right)
+            res.append(cur_level)
+        return res
+```
+
