@@ -946,3 +946,99 @@ class Solution:
         return res
 ```
 
+
+
+## [226. 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)
+
+```
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        def inv(node):
+            #交换左右节点
+            if not node:
+                return
+            temp=node.left
+            node.left=node.right
+            node.right=temp
+        if not root:
+            return
+        inv(root)
+        self.invertTree(root.left)
+        self.invertTree(root.right)
+        return root
+```
+
+
+
+
+
+## [101. 对称二叉树](https://leetcode.cn/problems/symmetric-tree/) TODO
+
+后序遍历: 下层的信息向上层返回,比较内侧和外侧
+` return compare(l.left,r.right) and compare(l.right,r.left)`
+
+```python
+class Solution:
+    
+            
+    def isSymmetric(self, root: Optional[TreeNode]) -> bool:
+        def compare(l,r):
+            if l and (not r): return False
+            elif (not l) and  r: return False
+            elif (not l) and (not r): return True
+            elif l.val != r.val : return False
+            #把下面的答案递归上来
+            return compare(l.left,r.right) and compare(l.right,r.left)
+        if not root:
+            return True
+        return compare(root.left,root.right)
+```
+
+
+
+## [104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+
+```python
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        def re_dep(l,r):
+            if not l and not r :return 0
+            if l and not r: return re_dep(l.left,l.right)+1
+            if not l and  r: return re_dep(r.left,r.right)+1
+            if l and r: return max( re_dep(l.left,l.right),re_dep(r.left,r.right),)+1
+        if not root:
+            return 0
+        return re_dep(root.left,root.right)+1
+```
+
+
+
+## [222. 完全二叉树的节点个数](https://leetcode.cn/problems/count-complete-tree-nodes/)
+
+跟上面差不多,从下往上传递信息
+
+```python
+class Solution:
+    def countNodes(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+        def func(l,r):
+            if not l and not r : return 0
+            elif r and not l :return 0
+            elif l and not r: return 1
+            return func(l.left,l.right)+func(r.left,r.right)+2
+        return func(root.left,root.right)+1
+```
+
