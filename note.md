@@ -1443,3 +1443,123 @@ class Solution:
 ```
 
 ## [450. 删除二叉搜索树中的节点](https://leetcode.cn/problems/delete-node-in-a-bst/)  TODO
+
+```python
+class Solution:
+    #利用递归返回下一层的值,从而避免寻找父节点
+    def deleteNode(self, root: Optional[TreeNode], key: int) -> Optional[TreeNode]:
+        if not root:
+            return None
+        # 辅助函数：寻找以 node 为根的树中的最小值（一直往左走）
+        def get_min( node):
+            while node and node.left:
+                node = node.left
+            return node
+        #递归找到key
+        if root.val>key:
+            root.left= self.deleteNode(root.left,key)
+        elif root.val<key:
+            root.right=self.deleteNode(root.right,key)
+        else:
+            #叶子
+            if not root.left and not root.right:
+                return None
+
+            #只有其中一个节点
+            elif not root.left:
+                return root.right
+            elif  not root.right:
+                return root.left
+
+            #左右节点都有
+            else:
+                #左下节点替代当前节点,继续递归删除最后的节点
+                node0=get_min(root.right)
+                root.val=node0.val
+                root.right=self.deleteNode(root.right,node0.val)
+                return root
+```
+
+
+
+## [669. 修剪二叉搜索树](https://leetcode.cn/problems/trim-a-binary-search-tree/) TODO
+
+根据当前节点的值，果断**放弃掉不需要的那一半子树**
+
+```python
+class Solution:
+    def trimBST(self, root: Optional[TreeNode], low: int, high: int) -> Optional[TreeNode]:
+        if not root:
+            return
+        #舍弃半边子树和自己
+        if root.val<low:
+            root.left=None
+            root=self.trimBST(root.right,low,high)
+        elif root.val>high:
+            root.right=None
+            root=self.trimBST(root.left,low,high)
+        else:
+            root.right=self.trimBST(root.right,low,high)
+            root.left=self.trimBST(root.left,low,high)
+        return root
+```
+
+
+
+## [108. 将有序数组转换为平衡二叉搜索树](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/) todo
+
+以中间作为分界,不断递归中序分治
+
+```python
+class Solution:
+    def sortedArrayToBST(self, nums: List[int]) -> Optional[TreeNode]:
+        if not nums:
+            return None
+        mid = len(nums)//2
+        root = TreeNode(nums[mid])
+
+        root.left=self.sortedArrayToBST(nums[:mid])
+        root.right=self.sortedArrayToBST(nums[mid+1:])
+
+        return root
+```
+
+
+
+
+
+## [538. 把二叉搜索树转换为累加树](https://leetcode.cn/problems/convert-bst-to-greater-tree/)
+
+```python
+class Solution:
+    a=0
+    def convertBST(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        if not root: return
+        self.convertBST(root.right)
+        root.val+=self.a
+        self.a=root.val
+        self.convertBST(root.left)
+
+        return root
+```
+
+优化一下,确保调用时会清空self.pre
+
+```python
+class Solution:
+    def convertBST(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        self.pre = 0
+        def dfs(node):
+
+            if not node:
+                return 
+            dfs(node.right)
+            node.val = self.pre + node.val
+            self.pre = node.val
+            dfs(node.left)
+        
+        dfs(root)
+        return root
+```
+
+# 回溯算法
