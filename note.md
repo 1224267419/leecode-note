@@ -1563,3 +1563,154 @@ class Solution:
 ```
 
 # 回溯算法
+
+组合 : [1,2,3,4,]有多少种两两组合方式
+切割 : 切割后的子串都是回文子串
+子集 : [1,2,3,4,]有多少种组合方式
+组合 : 无顺序的排列
+棋盘 : n皇后,解数独 
+
+一般会带着多个参数进行回溯,在构建过程中不断添加
+
+收集结果 : **叶子节点** or **所有节点**
+
+##### 三部曲 : 处理 , 递归 , 回溯
+
+**三部曲 : 处理(本层处理),递归(深层),回溯(从递归返回)**
+
+## [77. 组合](https://leetcode.cn/problems/combinations/)  TODO
+
+利用回溯,达到类似嵌套for循环的做法
+
+```python
+class Solution:
+    def combine(self, n: int, k: int) -> List[List[int]]:
+        res=[]
+        path=[]
+        def fun(s,e,k):
+            #start,end,k 递归深度
+            if len(path)==k:
+                #path[:] path进行深拷贝,避免后续修改
+                res.append(path[:]) 
+                return
+            else:
+                for i in range(s,e+1):
+                    path.append(i)
+                    fun(i+1,e,k)
+                    path.pop()
+        fun(1,n,k)
+        return res
+```
+
+## 上述代码可以优化,剪枝一下有
+
+```python
+class Solution:
+    def combine(self, n: int, k: int) -> List[List[int]]:
+        res=[]
+        path=[]
+        def fun(s,e,k):
+            #start,end,k 递归深度
+            n=len(path)
+            #剪枝
+            if k-n>e-s+1:
+                return
+            if n==k:
+                res.append(path[:]) 
+                return
+            else:
+                for i in range(s,e+1):
+                    path.append(i)
+                    fun(i+1,e,k)
+                    path.pop()
+        fun(1,n,k)
+        return res
+```
+
+
+
+```python
+return list(combinations(range(1,n+1),k))
+```
+
+
+
+
+
+## [216. 组合总和 III](https://leetcode.cn/problems/combination-sum-iii/)
+
+```python
+class Solution:
+    def combinationSum3(self, k: int, n: int) -> List[List[int]]:
+        res=[]
+        path=[]
+        def func(start):
+            if len(path)==k and sum(path)==n:
+                res.append(path[:])
+            else:
+                for i in range(start,10):
+                    path.append(i)
+                    func(i+1)
+                    path.pop()
+        func(1)
+        return res
+```
+
+剪枝优化(自己写的)
+
+```python
+class Solution:
+    def combinationSum3(self, k: int, n: int) -> List[List[int]]:
+        res=[]
+        path=[]
+        def func(start):
+            s,lenth=sum(path),len(path)
+            if s>n or 10-start<k-lenth :
+                return
+            
+            if len(path)==k and sum(path)==n:
+                res.append(path[:])
+            else:
+                for i in range(start,10):
+                    path.append(i)
+                    func(i+1)
+                    path.pop()
+        func(1)
+        return res
+```
+
+
+
+
+
+## [17. 电话号码的字母组合](https://leetcode.cn/problems/letter-combinations-of-a-phone-number/)
+
+这里用递归会产生内存问题,比较麻烦
+
+```python
+class Solution:
+    def letterCombinations(self, digits: str) -> List[str]:
+        KEY = {'2': ['a', 'b', 'c'],
+               '3': ['d', 'e', 'f'],
+               '4': ['g', 'h', 'i'],
+               '5': ['j', 'k', 'l'],
+               '6': ['m', 'n', 'o'],
+               '7': ['p', 'q', 'r', 's'],
+               '8': ['t', 'u', 'v'],
+               '9': ['w', 'x', 'y', 'z']}
+        path=[]
+        res=[]
+        n=len(digits)
+        def func(start):
+            if start==n:
+                res.append(''.join(path[:]))
+                return
+            for i in KEY[digits[start]]:
+                path.append(i)
+                func(start+1)
+                path.pop()
+        func(0)
+        return res
+```
+
+也就打表恶心了点
