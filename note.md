@@ -1,5 +1,41 @@
 [代码随想录](https://www.bilibili.com/video/BV1QB4y1D7ep?vd_source=82d188e70a66018d5a366d01b4858dc1&spm_id_from=333.788.videopod.sections)
 
+# 常用技巧
+
+`join` 是胶水，不是容器。
+
+join:
+
+```python
+新字符串 = "分隔符".join(要被连接的列表)
+```
+
+```python
+a = ['1', '2', '3', '4']
+print('.'.join(a))
+#输出
+#1.2.3.4
+```
+
+
+
+find:
+
+```python
+list.index(x[, start[, end]])
+```
+
+元素第一次出现的位置
+
+deque:双向列表
+
+```
+q=deque()
+q.popleft()
+```
+
+
+
 # 数组
 
 ## 704:二分法
@@ -1714,3 +1750,316 @@ class Solution:
 ```
 
 也就打表恶心了点
+
+## [39. 组合总和](https://leetcode.cn/problems/combination-sum/) TODO
+
+
+
+```python
+class Solution:
+    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
+        res=[]
+        cur=[]
+        candidates.sort()
+        def func(start,target0):
+            if target0==0:
+                res.append(cur[:])
+                return
+            elif target0<2:
+                return
+            else:
+                #通过start,避免重复组合
+                for idx,i in enumerate(candidates[start:]):
+                    if target<i : break #剪枝
+                    cur.append(i)
+                    func(idx+start,target0-i)
+                    cur.pop()
+        func(0,target)
+        return res
+```
+
+
+
+## [40. 组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)
+
+**注意：**解集不能包含重复的组合。 
+
+自己写的:通过count迫使连续部分全取,从而避免了重复计算
+
+```python
+class Solution:
+    def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
+        res=[]
+        path=[]
+        candidates.sort()
+        n=len(candidates)
+        def func(start,target):
+            if target==0:
+                res.append(path[:])
+            else:
+                for i,num in enumerate(candidates[start:]):
+                    if target<num:
+                        break
+                    count=1
+                    while i+start+count<n and candidates[i+start]==candidates[i+start+count]:
+                        path.append(num)
+                        count+=1
+
+                    path.append(num)
+                    func(start+i+count,target-num*count)
+                    
+                    for i in range(count):
+                        path.pop()
+
+        func(0,target)
+        return res
+```
+
+法2:暴力法去重:超时(用tuple和set进行去重)
+
+法3:剪枝仅保留一个元素,删去其他重复元素,效率更高(递归变少 , 因为第一个肯定包含所有的
+而且直接使用索引,更省内存
+
+```python
+class Solution:
+    def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
+        res=[]
+        path=[]
+        candidates.sort()
+        n=len(candidates)
+        def func(start,target):
+            if target==0:
+                res.append(tuple(path[:]))
+            for i in range(start, len(candidates)):
+                if candidates[i] > target: break
+                #减去重复的部分
+                if i > start and candidates[i] == candidates[i - 1]: continue
+                path.append(candidates[i])
+                func(i+1,target-candidates[i])
+                path.pop()
+
+        func(0,target)
+
+
+        return  res
+```
+
+
+
+# 回溯切割
+
+## [131. 分割回文串](https://leetcode.cn/problems/palindrome-partitioning/)  TODO
+
+使**每个子串都是 回文串** 。返回 `s` 所有可能的分割方案 
+
+```python
+class Solution:
+    def partition(self, s: str) -> List[List[str]]:
+        res=[]
+        n=len(s)
+        path=[]
+        def func(start_idx):
+            if start_idx==n: 
+                res.append(path.copy())
+                return
+            #切割后续子串
+            for i in range(start_idx,n):
+                #切割下来的子串,
+                sub_string=s[start_idx:i+1]
+                #数组操作,判断是否为回文子串
+                if sub_string==sub_string[::-1]:
+                    path.append(sub_string)
+                    func(i+1)
+                    path.pop()
+        func(0)
+        return res
+
+```
+
+
+
+错误答案:只考虑了奇数部分,没考虑偶数,而且**题目理解有问题**
+
+```python
+class Solution:
+    def partition(self, s: str) -> List[List[str]]:
+        res=[]
+        n=len(s)
+        def func(mid):
+            path=s[mid]
+            res.append(path)
+            count=min(mid,n-1-mid)
+            for i in range(1,count+1):
+                c=s[mid+i]
+                if s[mid-i]==c:
+                    path=c.join(path).join(c)
+                    res.append(path)
+                else:
+                    return
+        for i in range(n):
+            func(i)
+        return res
+```
+
+
+
+## [93. 复原 IP 地址](https://leetcode.cn/problems/restore-ip-addresses/)  TODO
+
+
+
+#### 自己写的错误答案
+
+```python
+class Solution:
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        res=[]
+        n=len(s)
+        path=[]
+        def func(start_idx):
+            #
+            if len(path)>4 or (len(path)==4 and start_idx!=n) or start_idx>n-1:
+                return
+            if start_idx==n and len(path)==4: 
+                res.append(path.copy())
+                return
+            
+
+            #切割子串
+                #前导0
+            if s[start_idx]=='0':
+                path.append(s[start_idx])
+                func(start_idx+1)
+                path.pop()
+                return
+
+            #无前导0
+            for i in range(start_idx,start_idx+3):
+                #判断是否小于255(前导0已取出)
+                
+
+                #切割下来的子串,
+                sub_string=s[start_idx:i+1]
+                num=int(sub_string)
+
+                if num>255:
+                    return
+                else:
+                    path.append(sub_string)
+                    func(i+1)
+                    path.pop()
+                #没有前导0
+                
+        func(0)
+        res1=[]
+        result_strings = ['.'.join(p) for p in res]
+        return result_strings
+
+```
+
+#### 修改以后
+
+
+
+```python
+class Solution:
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        res=[]
+        n=len(s)
+        path=[]
+        def func(start_idx):
+            if len(path) > 4:
+                return
+            
+            # 如果遍历到了字符串末尾
+            if start_idx == n:
+                # 只有刚好切成4段才算成功
+                if len(path) == 4:
+                    res.append(path.copy())
+                return
+
+            #无前导0,min(start_idx + 3, n)用于避免越界
+            for i in range(start_idx,min(start_idx + 3, n)):
+                # 1. 检查前导 0：如果长度 > 1 且以 '0' 开头，非法
+
+                sub_string=s[start_idx:i+1]
+                num=int(sub_string)
+                if len(sub_string) > 1 and sub_string.startswith('0'):
+                    return
+                if num>255:
+                    return
+                else:
+                    path.append(sub_string)
+                    func(i+1)
+                    path.pop()
+                #没有前导0
+                
+        func(0)
+        res1=[]
+        #.join(p)有返回值,上面的做法不正确(不修改原来的p)
+        result_strings = ['.'.join(p) for p in res]
+        return result_strings
+
+```
+
+优雅写法
+
+```python
+class Solution:
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        # 预先判断：如果字符串长度不在合法范围内 [4, 12]，直接返回空
+        if len(s) < 4 or len(s) > 12:
+            return []
+            
+        res = []
+        n = len(s)
+        
+        # path: 当前已经收集到的段列表
+        # start: 当前处理到的字符串索引
+        def backtrack(start, path):
+            # --- 核心优化：强力剪枝 ---
+            # 计算还需要凑几个段
+            needs = 4 - len(path)
+            # 计算还剩多少个字符
+            remain = n - start
+            
+            # 如果剩余字符 不够分 (remain < needs) 
+            # 或者 剩余字符 太多了 (remain > 3 * needs)，直接剪枝
+            if remain < needs or remain > 3 * needs:
+                return
+            
+            # 终止条件：如果不满足上面的剪枝，且 path 满了 4 个，
+            # 说明肯定正好分完（由剪枝逻辑保证），直接加入结果
+            if len(path) == 4:
+                res.append(".".join(path))
+                return
+
+            # --- 循环逻辑 ---
+            # 尝试截取长度 1, 2, 3
+            for length in range(1, 4):
+                # 越界检查
+                if start + length > n:
+                    break
+                
+                sub = s[start : start + length]
+                
+                # 1. 前导 0 检查：长度 > 1 且首位是 '0'，直接结束循环
+                # (因为再往后切肯定也是 '0' 开头，都没戏)
+                if length > 1 and sub[0] == '0':
+                    break
+                    
+                # 2. 数值检查：大于 255，直接结束循环
+                # (因为再往后切数值更大)
+                if int(sub) > 255:
+                    break
+                
+                # 递归
+                # 技巧：直接传 path + [sub]，创建新列表传参
+                # 这样利用了函数调用栈的特性，省去了 path.pop() 的显式回溯步骤
+                backtrack(start + length, path + [sub])
+
+        backtrack(0, [])
+        return res
+```
+
+
+
