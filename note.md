@@ -1817,8 +1817,10 @@ class Solution:
 
 法2:暴力法去重:超时(用tuple和set进行去重)
 
-法3:剪枝仅保留一个元素,删去其他重复元素,效率更高(递归变少 , 因为第一个肯定包含所有的
+法3:剪枝仅保留一个元素,**删去其他重复元素,效率更高**(递归变少 , 因为第一个肯定包含所有的
 而且直接使用索引,更省内存
+
+**树层去重**
 
 ```python
 class Solution:
@@ -1832,7 +1834,7 @@ class Solution:
                 res.append(tuple(path[:]))
             for i in range(start, len(candidates)):
                 if candidates[i] > target: break
-                #减去重复的部分
+                #避免出现重复
                 if i > start and candidates[i] == candidates[i - 1]: continue
                 path.append(candidates[i])
                 func(i+1,target-candidates[i])
@@ -2060,6 +2062,253 @@ class Solution:
         backtrack(0, [])
         return res
 ```
+
+
+
+## [78. 子集](https://leetcode.cn/problems/subsets/)
+
+子集问题，树上节点都是目标集和
+
+```python
+class Solution:
+    def subsets(self, nums: List[int]) -> List[List[int]]:
+        n=len(nums)
+        res=[]
+        path=[]
+        def func(start):
+            res.append(path.copy())
+            for i in range(start,n):
+                path.append(nums[i])
+                func(i+1)
+                path.pop()
+        func(0)
+        return res
+```
+
+
+
+## [90. 子集 II ](https://leetcode.cn/problems/subsets-ii/)  TODO
+
+可能包含重复元素,解集 **不能** 包含重复的子集
+
+```python
+class Solution:
+    def subsetsWithDup(self, nums: List[int]) -> List[List[int]]:
+        nums.sort()
+        n=len(nums)
+        res=[]
+        path=[]
+        def func(start):
+            for i in range(start,n):
+                #去重,和之前的组合总和2完全一样
+                if i > start and nums[i] == nums[i - 1]: continue
+                path.append(nums[i])
+                func(i+1)
+                path.pop()
+            res.append(path.copy())
+        func(0)
+        return res
+```
+
+
+
+
+
+## [491. 非递减子序列](https://leetcode.cn/problems/non-decreasing-subsequences/)
+
+这道题是回溯算法中的“深坑”，因为它和我们之前做的《子集II》非常像，但有一个**核心矛盾**：
+
+1. **求子序列**：不能改变原数组的顺序，所以**不能排序**。
+2. **去重**：因为不能排序，所以我们之前熟练的 `if i > start and nums[i] == nums[i-1]` 这种去重逻辑**失效了**。
+3. 要在**每一层递归**中，维护一个 `set`（哈希集合），记录**这一层**到底使用了哪些数字。如果这一层已经处理过数字 `7`，后面再遇到 `7` 就直接跳过，不管它们在原数组中是不是相邻的。
+
+```python
+class Solution:
+    def findSubsequences(self, nums: List[int]) -> List[List[int]]:
+        res = []
+        path = []
+        n=len(nums)
+        def backtracking(startIndex):
+            #超过两个节点,都符合条件
+            if len(path) >=2:
+                #这里不是分割,因此不用return
+                res.append(path[:])
+            usage_set = set()
+            for i in range(startIndex,n):
+                #不递增,跳过
+                if path and path[-1]>nums[i]: continue
+                #有重复字段 如4,7,7 因为有记录,会跳过第二个 [4,7]
+                if nums[i] in usage_set : continue
+                #
+                usage_set.add(nums[i])
+                path.append(nums[i])
+
+                #递归
+                backtracking(i+1)
+                path.pop()
+                # 注意：usage_set 不需要回溯（不需要 remove）！
+                # 因为 usage_set 只是为了控制“当前这一层”不能重复选同一个数值
+                # 下一层递归会创建它自己的新 set，互不影响。
+        backtracking(0)
+            
+        return res
+```
+
+
+
+## [46. 全排列](https://leetcode.cn/problems/permutations/)
+
+
+
+使用usage记录使用过的部分
+
+```python
+class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        res = []
+        path = []
+        usage=[0 for i in range(len(nums))]
+        def backtracking():
+            if len(path)==len(nums):
+                res.append(path[:])
+            for idx,num in enumerate(nums):
+                if usage[idx] !=0: continue
+                path.append(num)
+                usage[idx]=1
+                backtracking() 
+                path.pop()
+                usage[idx]=0
+        backtracking()
+        return res
+```
+
+
+
+
+
+**错误1**
+
+每一次迭代都构建切片,内存消耗大,爆内存
+
+```python
+class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        res = []
+        path = []
+
+        def backtracking(n):
+            if len(path)==len(nums):
+                res.append(path)
+            for idx,num in enumerate(n):
+                path.append(num)
+                backtracking(n[0:idx-1]+n[idx+1:len(n)]) 
+                path.pop()
+        backtracking(nums)
+        return res
+```
+
+
+
+
+
+## [47. 全排列 II](https://leetcode.cn/problems/permutations-ii/) TODO
+
+再优化
+
+```python
+class Solution:
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        nums.sort()
+        res = []
+        path = []
+        usage=[False for i in range(len(nums))]
+        def backtracking():
+            if len(path)==len(nums):
+                res.append(path[:])
+                return
+            for i,num in enumerate(nums):
+                #去掉已经加入的元素
+                if usage[i] : continue
+                # 当前层去重 , 不用set
+                if i > 0 and nums[i] == nums[i-1] and not usage[i-1]:
+                    continue
+                
+                #回溯计算
+                path.append(num)
+                usage[i]=True
+                backtracking() 
+                path.pop()
+                usage[i]=False
+
+        backtracking()
+        return res
+```
+
+
+
+
+
+
+
+优化:在计算过程中剪枝
+
+```python
+class Solution:
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        res = []
+        path = []
+        usage=[False for i in range(len(nums))]
+        def backtracking():
+            if len(path)==len(nums):
+                res.append(path[:])
+            levelUsage=set()
+            for idx,num in enumerate(nums):
+                #去掉已经加入的元素
+                if usage[idx] !=0: continue
+                # 当前层去重
+                if num in  levelUsage :continue
+                
+                #回溯计算
+                path.append(num)
+                levelUsage.add(num)
+                usage[idx]=True
+                backtracking() 
+                path.pop()
+                usage[idx]=False
+                
+        backtracking()
+        return res
+```
+
+
+
+
+
+给定一个可包含重复数字的序列 `nums` ，***按任意顺序*** 返回所有不重复的全排列。
+
+修改上一道题,通过in来去重,时间复杂度 : O(N!)
+
+```python
+class Solution:
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        res = []
+        path = []
+        usage=[0 for i in range(len(nums))]
+        def backtracking():
+            if len(path)==len(nums) and (path not in res):
+                res.append(path[:])
+            for idx,num in enumerate(nums):
+                if usage[idx] !=0: continue
+                path.append(num)
+                usage[idx]=1
+                backtracking() 
+                path.pop()
+                usage[idx]=0
+        backtracking()
+        return res
+```
+
+
 
 
 
