@@ -2312,3 +2312,205 @@ class Solution:
 
 
 
+## [51. N 皇后](https://leetcode.cn/problems/n-queens/) TODO
+
+用单个list记录元素,set记录对角线 , 节省空间和修改时间
+
+```python
+import numpy as np
+from collections import defaultdict
+
+class Solution:
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        res=[]
+        #记录各层元素位置
+        queens=[-1]*n    
+
+        #主对角线差相等
+        main_diag={}
+        #副对角线和相等
+        sub_diag={}
+
+        def backtrack(row:int):
+            if row == n:
+                path=[]
+
+                for i in range(n):
+                    a=['.']*n
+                    a[queens[i]]='Q'
+                    path.append(''.join(a))
+                res.append(path[:])
+                return
+            
+            for col in range(n):
+                if row-col in sub_diag or row+col in main_diag or col in queens : continue
+
+                queens[row]=col
+                main_diag[row+col]=1
+                sub_diag[row-col]=1
+
+                backtrack(row+1)
+
+
+                del main_diag[row+col]
+                del sub_diag[row-col]
+
+                queens[row]=-1
+        backtrack(0)
+        return res
+```
+
+
+
+拷贝问题,list.copy只能拷贝一层的结果,而且输出也有问题,需要修改
+
+```py
+import copy
+class Solution:
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        if n==1:
+            return [["Q"]]
+ 
+        if n <3:
+            return []
+        res=[]
+        #path记录下过的点,side记录哪些部分还可以下
+        path=[['.' for i in range(n)] for i in range(n)]
+        side=[[True for i in range(n)] for i in range(n)]
+        #遍历第row行,且树的深度也是row
+        def back(row):
+            if row==n:
+                res.append(path.deepcopy())
+                return
+            #外层保存,便于复原
+            nonlocal side
+            rem=side.copy()
+            for col in range(n):
+                #禁区剪枝
+                if not side[row][col]: continue
+
+                #append
+                path[row][col]='Q'
+                
+                #修改side
+                for i in range(n):
+                    side[i][col]=False
+                #左下
+                i,j=row+1,col-1
+                while n>j>=0 and n>i>=0:
+                    side[i][j]=False
+                    i,j=i+1,j-1
+                #右下
+                i,j=row+1,col+1
+                while n>j>=0 and n>i>=0:
+                    side[i][j]=False
+                    i,j=i+1,j+1
+                
+                #回溯
+                back(row+1)
+
+                #pop
+                path[row][col]='.'
+                side=rem
+                
+        back(0)
+        return res
+```
+
+
+
+# 贪心算法
+
+局部最优->全局最优 
+
+
+
+
+
+## [455. 分发饼干](https://leetcode.cn/problems/assign-cookies/)
+
+```python
+class Solution:
+    def findContentChildren(self, g: List[int], s: List[int]) -> int:
+        count=0
+        g.sort()
+        s.sort()
+        m,n=len(g),len(s)
+        i=0
+        #所有饼干已分完
+        for j in range(n):
+            #所有人都有饼干
+            if i==m: break
+            if s[j] >= g[i]:
+                i+=1
+                count+=1
+        return count
+```
+
+
+
+
+
+## [376. 摆动序列](https://leetcode.cn/problems/wiggle-subsequence/)
+
+自己写的,边界条件不太好
+
+```python
+class Solution:
+    def wiggleMaxLength(self, nums: List[int]) -> int:
+        def fuhao(x):
+            if x>0:
+                return 1
+            elif x<0:
+                return -1
+            return 0
+
+
+        n=len(nums)
+        if n==1:
+            return 1
+        #记录数字差的正负
+        start=1
+        while  nums[start]==nums[start-1]:
+            start+=1
+            if start==n:
+                return 1
+        flag=nums[start]>nums[start-1]
+        count=2
+        for i in range(start,n):
+            if nums[i]==nums[i-1]: continue
+            f=nums[i]>nums[i-1]
+            if flag!=f:
+                flag=f
+                count+=1
+
+        return count
+
+```
+
+优化一下
+
+```python
+class Solution:
+    def wiggleMaxLength(self, nums: List[int]) -> int:
+        n = len(nums)
+        if n < 2:
+            return n
+        
+        preDiff = 0  # 前一对差值
+        curDiff = 0  # 当前一对差值
+        count = 1    # 默认记录最后一个元素，所以从1开始
+        
+        for i in range(1, n):
+            curDiff = nums[i] - nums[i - 1]
+            
+            # 出现摆动：
+            # 1. 之前是平/增(pre>=0)，现在减(cur<0) -> 峰值
+            # 2. 之前是平/减(pre<=0)，现在增(cur>0) -> 谷值
+            if (curDiff > 0 and preDiff <= 0) or (curDiff < 0 and preDiff >= 0):
+                count += 1
+                preDiff = curDiff # 只有发生摆动时才更新 preDiff
+                
+        return count
+```
+
