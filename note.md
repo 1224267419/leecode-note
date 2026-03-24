@@ -2451,7 +2451,7 @@ class Solution:
 
 
 
-## [376. 摆动序列](https://leetcode.cn/problems/wiggle-subsequence/)
+## [376. 摆动序列](https://leetcode.cn/problems/wiggle-subsequence/) TODO
 
 自己写的,边界条件不太好
 
@@ -2514,3 +2514,1021 @@ class Solution:
         return count
 ```
 
+
+
+## [53. 最大子数组和](https://leetcode.cn/problems/maximum-subarray/)
+
+贪心算法:
+
+```python
+class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        maxsum=0
+        last_sum=0
+        n=len(nums)
+        l_sub_list=0
+        for i in range(n):
+            last_sum+=nums[i]
+            if last_sum <0:
+                last_sum=0
+            else:
+                l_sub_list+=1
+                maxsum=max(maxsum,last_sum)
+        
+        #全是负数,返回最大元素
+        if l_sub_list==0:
+            return max(nums)
+        return maxsum
+```
+
+dp:用dp数组记录
+
+```python
+class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        dp = [0] * len(nums)
+        dp[0] = nums[0]
+        res = nums[0]
+        for i in range(1,len(nums)):
+            dp[i]=max(dp[i-1]+nums[i],nums[i])
+        return max(dp)
+```
+
+
+
+## [122. 买卖股票的最佳时机 II](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
+
+低买高卖
+
+```python
+class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        res=0
+
+        n=len(prices)
+        for i in range(1,n):
+            cur=prices[i]-prices[i-1]
+            if cur>0: res+=cur
+        return res
+```
+
+## [55. 跳跃游戏](https://leetcode.cn/problems/jump-game/) TODO
+
+1.DP动态规划:时间O(n^2) 空间O(n)
+
+```python
+class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        n=len(nums)
+        dp=[False]*n
+        dp[n-1]=True
+        for i in range(n-2,-1,-1):
+            for j in range(1,nums[i]+1):
+                if j+i>=n:
+                    break
+                if dp[i+j]==True:
+                    dp[i]=True
+                    break
+        return dp[0]
+```
+
+2. **贪心算法（Greedy）**。我们只需要正向遍历，动态维护一个“当前能够到达的最远位置”	
+
+```python
+class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        n=len(nums)
+        if n==1:
+            return True
+        farest=nums[0]
+        for i in range(n):
+            if i>farest:
+                break
+            farest=max(farest,i+nums[i])
+        return farest>=n-1
+```
+
+
+
+## [45. 跳跃游戏 II](https://leetcode.cn/problems/jump-game-ii/)  TODO
+
+dp动态规划 , 时间O(n^2) , 空间O(n)
+
+```python
+class Solution:
+    def jump(self, nums: List[int]) -> int:
+        # 0 <= nums[i] <= 1000
+        if len(nums)==1:
+            return 0
+        n=len(nums)
+        dp=[99999]*n
+        dp[0]=0
+        for i in range(n):
+            for j in range(1,nums[i]+1):
+                if i+j>=n:
+                    break
+                dp[i+j]=min(dp[i]+1,dp[i+j])
+            
+        return dp[n-1]
+
+```
+
+**贪心算法（Greedy）** 维护覆盖范围 直至覆盖最后一个值
+
+```python
+class Solution:
+    def jump(self, nums: List[int]) -> int:
+        # 0 <= nums[i] <= 1000
+        n=len(nums)
+        last=0 #下一次覆盖范围
+        count=0 
+        end=0 #当前覆盖范围
+        for i in range(n-1):
+            last=max(last,i+nums[i])
+            if i==end:
+                end=last
+                count+=1
+        return count
+
+```
+
+
+
+## [1005. K 次取反后最大化的数组和 ](https://leetcode.cn/problems/maximize-sum-of-array-after-k-negations/) TODO
+
+没写出来 , 自己这个做法没考虑全正的情况
+
+```python
+class Solution:
+    def largestSumAfterKNegations(self, nums: List[int], k: int) -> int:
+        count=0
+        n=len(nums)
+        negative=[]
+        for i in range(n):
+            if nums[i]<0:
+                count+=1
+                negative.append(nums[i])
+        negative.sort() 
+        ne=len(negative)
+        if ne>=k:
+            return sum(nums)-2*sum(negative[:k])
+        if (k-ne)%2==0:
+            return sum(nums)-2*sum(negative[:k])
+        return sum(nums)-2*sum(negative[:ne-2])
+```
+
+官方解
+
+```python
+class Solution:
+    def largestSumAfterKNegations(self, nums: List[int], k: int) -> int:
+        #按绝对值降序排序
+        nums.sort(key=lambda x: abs(x),reverse=True)
+        #取反
+        for i in range(len(nums)):
+            if k>0 and nums[i]<0:
+                nums[i]=-nums[i]
+                k-=1
+        # 处理剩余的k
+        if k%2==1:
+            nums[-1]*=-1
+        return sum(nums)
+```
+
+## [134. 加油站](https://leetcode.cn/problems/gas-station/) 
+
+注意:只有唯一起始位置
+
+暴力法: 超时 时间O(n^2)
+
+```python
+class Solution:
+    def canCompleteCircuit(self, gas: List[int], cost: List[int]) -> int:
+        n=len(gas)
+        for start in range(n):
+            g=0
+            flag=True
+            for i in range(start,n):
+                g=g+gas[i]-cost[i]
+                if g <0:
+                    flag=False
+                    break
+            for i in range(0,start):
+                g=g+gas[i]-cost[i]
+                if flag and g <0:
+                    flag=False
+                    break
+             #压缩一下可以变成一个for
+		   # for i in range(start,n+start):
+                # g=g+gas[i%n]-cost[i%n]
+                # if g <0:
+                    # flag=False
+                    # break       
+             
+            if  flag:
+                return start
+
+        
+        return -1
+```
+
+### 贪心算法
+
+- 情况一：如果gas的总和小于cost总和，那么无论从哪里出发，一定是跑不了一圈的
+- 情况二：rest[i] = gas[i]-cost[i]为一天剩下的油，i从0开始计算累加到最后一站，**如果累加没有出现负数，说明从0出发，油就没有断过，那么0就是起点**。
+- 情况三：如果累加的值是负数 , 则继续后续部分的和必然是正数 , 
+
+```python
+class Solution:
+
+    def canCompleteCircuit(self, gas: List[int], cost: List[int]) -> int:
+        n=len(gas)
+        nums=[]
+        for i in range(n):
+            nums.append(gas[i]-cost[i])
+        #  总燃油不够环湖
+        if sum(nums)<0:
+            return -1
+        # 如果存在,只能有一个起点
+        cur_sum=0
+        mark=0
+        for i in range(n):
+            cur_sum+=nums[i]
+            if cur_sum<0:
+                #前面的多个<0的段合成一个<0的段
+                cur_sum=0
+                mark=i+1
+        return mark
+```
+
+
+
+## [135. 分发糖果](https://leetcode.cn/problems/candy/) TODO
+
+**两个维度都需要考虑的情况,不要同时去照顾两个条件,而应该先满足一个,再满足另外一个**
+
+我的代码中使用了 `res = sum(dp) + (1-min(dp))*n` 的逻辑。你的意图是：先不管底线，按差值上下浮动，最后找出最小值，把所有人统一“垫高”使得最少的人刚好拿 1 颗糖。
+
+- **问题所在：** 这种“一刀切”的整体平移会导致大量多余的糖果。比如评分是 `[10, 9, 8, 1, 2]`，为了填补 `8` 到 `1` 这个巨大的“谷底”，你会把毫无关系的 `10` 和 `9` 的糖果数也强行拉高，这无法得出**最少**糖果数目。正确的做法是：**遇到谷底时，谷底的孩子直接拿 1 颗糖重新开始计算**，不影响其他区间。
+
+### 2. 两次遍历的组合方式错误 (最致命的逻辑漏洞)
+
+你把从左到右的计算结果存为 `res`，然后又重新初始化数组进行从右到左的计算，最后返回 `min(正向总和, 反向总和)`。
+
+- **问题所在：** 题目要求“相邻两个孩子中，评分更高的拿更多糖果”，这意味着**每一个孩子都必须同时满足左边和右边的约束**。
+- 如果孩子 $A$ 因为比左边评分高，需要 $3$ 颗糖；又因为比右边评分高，需要 $5$ 颗糖。为了同时满足两侧的条件，他**必须**拿 $\max(3, 5) = 5$ 颗糖。因此，两次遍历的结果不能当做两个独立的方案去求最小值，而是要**针对每个位置取两次遍历的约束最大值**。
+
+```python
+class Solution:
+    def candy(self, r: List[int]) -> int:
+        n=len(r)
+        dp=n*[1]
+        if n==1:
+            return 1
+        for i in range(n-1):
+            if r[i]<r[i+1]:
+                dp[i+1]=dp[i]+1
+            elif r[i]>r[i+1]:
+                dp[i+1]=dp[i]-1
+            else:
+                dp[i+1]=0
+        res=sum(dp)+(1-min(dp))*n
+        dp=n*[1]
+        for i in range(n-1,1,-1):
+            if r[i]<r[i-1]:
+                dp[i-1]=dp[i]+1
+            elif r[i]>r[i-1]:
+                dp[i-1]=dp[i]-1
+            else:
+                dp[i-1]=0
+        
+
+        return min(res,sum(dp)+(1-min(dp))*n)
+
+```
+
+答案
+
+```python
+from typing import List
+
+class Solution:
+    def candy(self, ratings: List[int]) -> int:
+        n = len(ratings)
+        # 初始化：每个孩子至少分配到 1 个糖果
+        dp = [1] * n
+        
+        # 1. 从左往右遍历：确保右边评分高的孩子，糖果比左边多
+        for i in range(1, n):
+            if ratings[i] > ratings[i-1]:
+                dp[i] = dp[i-1] + 1
+                
+        # 2. 从右往左遍历：确保左边评分高的孩子，糖果比右边多
+        for i in range(n-2, -1, -1):
+            if ratings[i] > ratings[i+1]:
+                # 核心逻辑：必须要同时满足两边的条件，所以取 max
+                dp[i] = max(dp[i], dp[i+1] + 1)
+                
+        return sum(dp)
+```
+
+
+
+[860. 柠檬水找零](https://leetcode.cn/problems/lemonade-change/)
+
+easy 题,跳了
+
+
+
+## [406. 根据身高重建队列](https://leetcode.cn/problems/queue-reconstruction-by-height/) TODO ,完全没思路
+
+这类问题属于**区间调度**问题
+
+高个子“看不见”矮个子，所以先安排高个子，后安排的矮个子无论怎么插队，都不会影响前面高个子的相对状态 , 实际目标是一个多条件排序
+
+```python
+class Solution:
+    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:
+        #先按0排降序,再按1排升序
+        people.sort(key=lambda x: (-x[0],x[1]))
+        res=[]
+        for p in people:
+            res.insert(p[1],p)
+        return res
+```
+
+
+
+## [452. 用最少数量的箭引爆气球](https://leetcode.cn/problems/minimum-number-of-arrows-to-burst-balloons/) 
+
+
+
+自己的:按上一题的想法,改造即可
+
+```python
+class Solution:
+    def findMinArrowShots(self, points: List[List[int]]) -> int:
+        points.sort(key=lambda x:(x[1],x[0]))
+        n=len(points)
+        res=1
+        #取最上值
+        cur=points[0][1]
+        for i in range(1,n):
+            if points[i][0]<=cur and points[i][1]>=cur:
+                continue
+            else:
+                res+=1
+                cur=points[i][1]
+
+        return res
+```
+
+优化:
+
+**1. 排序条件存在冗余**
+
+- **你的代码：** `points.sort(key=lambda x:(x[1],x[0]))`
+- **优化思路：** 在这道贪心题目中，只要确定了右端点 `x[1]` 是递增的，当遇到右端点相同但左端点 `x[0]` 不同的气球时，它们谁先谁后并不影响我们“把箭射在当前最小右端点”的决策。因此，完全不需要引入第二个维度的排序。只按右端点排序不仅代码更精简，底层的比较操作也会更快。
+
+**2. if 判断条件存在冗余**
+
+- **你的代码：** `if points[i][0] <= cur and points[i][1] >= cur:`
+- **优化思路：** 因为数组已经是按照右端点 `x[1]` 升序排列的，所以对于任何后续遍历到的气球 `i`，它的右端点 `points[i][1]` **必定大于或等于** 当前记录的最早结束位置 `cur`。这意味着 `points[i][1] >= cur` 这个条件是**绝对恒成立**的，属于无效的重复计算。我们只需要判断新气球的左端点是否超出了这支箭的覆盖范围（即 `points[i][0] > cur`）即可。
+
+
+
+```python
+class Solution:
+    def findMinArrowShots(self, points: List[List[int]]) -> int:
+        if not points:
+            return 0
+            
+        # 优化1：仅仅按照气球的右边界进行升序排序
+        points.sort(key=lambda x: x[1])
+        
+        res = 1
+        cur = points[0][1] # 第一支箭射在第一个气球的右边界
+        
+        for i in range(1, len(points)):
+            # 优化2：只需判断气球左边界是否超出了当前箭的位置
+            # 如果超出，说明重叠区间断开，必须追加一支新箭
+            if points[i][0] > cur:
+                res += 1
+                cur = points[i][1] # 新箭射在当前气球的右边界
+                
+        return res
+```
+
+按随想录推荐的重叠区间法做
+
+```python
+class Solution:
+    def findMinArrowShots(self, points: List[List[int]]) -> int:
+        points.sort(key=lambda x:x[0])
+        n=len(points)
+        res=1
+        #取最上值
+        cur=points[0][1]
+        for i in range(n):
+            if points[i][0]<=cur :
+                cur=min(points[i][1],cur)
+            else:
+                res+=1
+                cur=points[i][1]
+        return res
+```
+
+
+
+## [435. 无重叠区间](https://leetcode.cn/problems/non-overlapping-intervals/)
+
+找重叠区间,如果重叠了就删一个,删掉右边界最远的即可
+
+```python
+class Solution:
+    def eraseOverlapIntervals(self, intervals: List[List[int]]) -> int:
+        intervals.sort(key=lambda x:(x[0]))
+        cur_start,cur_end=intervals[0]
+        res=0
+        n=len(intervals)
+        for i in range(1,n):
+            #重叠
+            if intervals[i][0]<cur_end:
+                cur_end=min(intervals[i][1],cur_end)
+                res+=1
+            else:
+                #不重叠
+                cur_end=intervals[i][1]
+            
+        return res
+```
+
+
+
+## [763. 划分字母区间](https://leetcode.cn/problems/partition-labels/)
+
+```python
+class Solution:
+    def partitionLabels(self, s: str) -> List[int]:
+        # 要求将s划分成尽量多的片段，保证每个片段中出现的字母不会出现在其他片段
+        d=dict()
+        n=len(s)
+        #遍历记录各个字符最远距离
+        for i in range(n):
+            d[s[i]]=i
+        start,end=0,0
+        res=[]
+        for i in range(n):
+            if d[s[i]]>end:
+                end=d[s[i]]
+            if i==end:
+                res.append(end-start+1)
+                start=end+1
+                if i+1<n:
+                    end=d[s[i+1]]
+            
+        return res
+```
+
+
+
+## [56. 合并区间](https://leetcode.cn/problems/merge-intervals/)
+
+```python
+class Solution:
+    def merge(self, intervals: List[List[int]]) -> List[List[int]]:
+        intervals.sort()
+        start,end=intervals[0]
+        n=len(intervals)
+        res=[]
+        for i in range(n):
+            #合并重叠
+            if intervals[i][0]<=end:
+                end=max(end,intervals[i][1])
+            else:
+                res.append([start,end])
+                start,end=intervals[i]
+        res.append([start,end])
+        return res
+                
+```
+
+
+
+## [738. 单调递增的数字](https://leetcode.cn/problems/monotone-increasing-digits/)   TODO
+
+从前向后遍历的话，遇到strNum[i - 1] > strNum[i]的情况，让strNum[i - 1]减一，但此时如果strNum[i - 1]减一了，可能又小于strNum[i - 2]。 导致可能满足不了条件
+比如 332，从前向后遍历的话，那么就把变成了329，此时2又小于了第一位的3了，真正的结果应该是299 显然不对
+
+```python
+class Solution:
+    def monotoneIncreasingDigits(self, n: int) -> int:
+        strNum = list(str(n))
+        a=[]
+        res=0
+        n=len(strNum)
+        for i in range(n-1,0,-1):
+            # 如果当前字符比前一个字符小，说明需要修改前一个字符
+            if strNum[i-1]>strNum[i]:
+                strNum[i-1]=str(int(strNum[i-1])-1)
+                 # 将前一个字符减1
+                # 将修改位置后面的字符都设置为9，因为修改前一个字符可能破坏了递增性质
+                for j in range(i, len(strNum)):
+                    strNum[j] = '9'
+
+        return int(''.join(strNum))
+```
+
+## [968. 监控二叉树](https://leetcode.cn/problems/binary-tree-cameras/)  TODO
+
+叶子的父放置 , 如何每隔两层节点放置一个 ->从下往上遍历->贪心算法
+
+错误:
+
+1.状态转移逻辑错误（最核心的问题）
+
+按照你的代码，假设状态是：`0`（无覆盖）、`1`（有相机）、`2`（被覆盖）。 当你遇到一个节点，它的左孩子是 `1`（有相机），右孩子是 `0`（无覆盖叶子）时：节点状态用 `(max(l, r) + 1) % 3` 推了出来，这个**状态转移是不对**的
+
+2.根节点遗漏判断
+
+如果一棵很大的树，经过层层向上传递，**最后根节点的状态推导出来是 `0`（即根节点没有被左右孩子覆盖到，自己也没有装相机）**。此时，虽然 `res` 可能已经是比如 5 或者 10，但你必须为这个孤立的根节点额外再加 1 个相机。你的代码忽略了这个边界情况。
+
+```python
+class Solution:
+    def minCameraCover(self, root: Optional[TreeNode]) -> int:
+        #后序遍历
+        res=0
+        def last_order(node):
+            nonlocal res
+            if not node:
+                return 2
+            
+            l=last_order(node.left)
+            r=last_order(node.right)
+            #叶子为0
+            if  l==0 or r==0:
+                return 
+            else:
+                m= (max(l,r)+1)%3
+                #值为1
+                if m==1:
+                    res+=1
+                return m
+        last_order(root)
+        
+        return res if res else 1
+```
+
+
+
+每个节点向父节点返回的**只有 1 个唯一确定的状态**（0代表未覆盖，1代表有相机，2代表已覆盖）
+
+```python
+class Solution:
+    def minCameraCover(self, root: Optional[TreeNode]) -> int:
+        res = 0
+
+        def dfs(node):
+            nonlocal res
+            if not node:
+                return 2   # 空节点视作已覆盖
+
+            l = dfs(node.left)
+            r = dfs(node.right)
+			
+            #左右孩子有未覆盖节点
+            if l == 0 or r == 0:
+                res += 1
+                return 1   # 当前节点放摄像头
+
+            if l == 1 or r == 1:
+                return 2   # 当前节点被覆盖
+
+            return 0       # 当前节点未覆盖
+		
+        仅有一个节点
+        if dfs(root) == 0:
+            res += 1
+
+        return res
+```
+
+
+
+
+
+
+
+
+
+# 动态规划 DP
+
+
+
+1. 确定dp数组（dp table）以及下标的含义
+2. 确定递推公式
+3. dp数组如何初始化
+4. 确定遍历顺序
+5. 举例推导dp数组
+
+**递推公式决定了dp数组要如何初始化** , **找问题的最好方式就是把dp数组打印出来，看看究竟是不是按照自己思路推导的！**
+
+## [509. 斐波那契数](https://leetcode.cn/problems/fibonacci-number/) 
+
+简单题,秒了
+
+
+
+## [746. 使用最小花费爬楼梯](https://leetcode.cn/problems/min-cost-climbing-stairs/)
+
+dp转移
+
+```python
+class Solution:
+    def minCostClimbingStairs(self, cost: List[int]) -> int:
+        n=len(cost)
+        dp=[0]*n
+        for i in range(2,n):
+            dp[i]=min(dp[i-2]+cost[i-2],dp[i-1]+cost[i-1])
+        return min(dp[n-2]+cost[n-2],dp[n-1]+cost[n-1])
+```
+
+优化空间:
+
+```python
+class Solution:
+    def minCostClimbingStairs(self, cost: List[int]) -> int:
+        dp0 = 0  # 初始值，表示从起点开始不需要花费体力
+        dp1 = 0  # 初始值，表示经过第一步不需要花费体力
+        
+        for i in range(2, len(cost) + 1):
+            # 在第i步，可以选择从前一步（i-1）花费体力到达当前步，或者从前两步（i-2）花费体力到达当前步
+            # 选择其中花费体力较小的路径，加上当前步的花费，得到当前步的最小花费
+            dpi = min(dp1 + cost[i - 1], dp0 + cost[i - 2])
+            
+            dp0 = dp1  # 更新dp0为前一步的值，即上一次循环中的dp1
+            dp1 = dpi  # 更新dp1为当前步的最小花费
+        
+        return dp1  # 返回到达楼顶的最小花费
+```
+
+## [62. 不同路径](https://leetcode.cn/problems/unique-paths/)
+
+标准dp :构建边缘,再循环达到m,n处
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        dp=[[1]*n for i in range(m)]
+        for i in range(1,m):
+            for j in range(1,n):
+                dp[i][j]=dp[i][j-1]+dp[i-1][j]
+        return dp[m-1][n-1]
+```
+
+
+
+## [63. 不同路径 II](https://leetcode.cn/problems/unique-paths-ii/)
+
+```python
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        m,n=len(obstacleGrid[0]),len(obstacleGrid)
+        dp=[[0]*m for i in range(n)]
+        #初始化边界,遇到障碍物则后续变0
+        for i in range(m):
+            if obstacleGrid[0][i]==1:
+                break
+            dp[0][i]=1
+        for i in range(n):
+            if obstacleGrid[i][0]==1:
+                break
+            dp[i][0]=1
+        for i in range(1,n):
+            for j in range(1,m):
+                if obstacleGrid[i][j]==0:
+                    dp[i][j]=dp[i][j-1]+dp[i-1][j]
+        return dp[n-1][m-1]
+```
+
+
+
+## [343. 整数拆分](https://leetcode.cn/problems/integer-break/) TODO
+
+- `2 <= n <= 58` 因此可以用dp[i]表示这个数 i 拆分的最大值 , dp[i+1]由之前的数值构建即可 ,dp[i-j]就是对i-j再次进行拆分
+
+错误答案:
+
+```python
+class Solution:
+    def integerBreak(self, n: int) -> int:
+        dp=[1]*(n+1)
+        for i in range(3,(n+1)):
+            #初始化res没有意义
+            res=dp[i-1]
+            for j in range(i):
+                #状态转移有问题,可以不拆j的 , 即
+                res=max(res,dp[j]*(i-j),dp[j]*dp[i-j])
+            dp[i]=res
+        return dp[-1]
+```
+
+ `dp[j]` 表示“j 被拆后的最大乘积”，不等于 `j`
+所以不能用 `dp[j] * dp[i-j]` 代替真正的拆分情况
+必须显式考虑 `j * (i-j)`
+
+修正后:
+
+```python
+class Solution:
+    def integerBreak(self, n: int) -> int:
+        dp = [0] * (n + 1)
+        dp[2] = 1
+
+        for i in range(3, n + 1):
+            for j in range(1, i):
+                #拆i-j和拆i是一致的
+                # dp[i] = max(dp[i], dp[j] * (i - j), j * (i - j))
+                dp[i] = max(dp[i], j * dp[i - j], j * (i - j))
+            dp[i] = res
+
+        return dp[n]
+```
+
+## [96. 不同的二叉搜索树](https://leetcode.cn/problems/unique-binary-search-trees/)
+
+
+
+```python
+class Solution:
+    def numTrees(self, n: int) -> int:
+        dp=[1,1,2]
+        if n<2:
+            return dp[n]
+        for i in range(3,n+1):
+            temp=0
+            for j in range(i):
+                #递推公式 根节点的1要减去
+                # temp+=dp[j]*dp[i-j]
+                temp+=dp[j]*dp[i-j-1]
+            dp.append(temp)
+        return dp[n]
+    
+```
+
+
+
+# 背包问题
+
+`dp[i][j]` :i为物品 , j为背包总容量,通过**左上方和正上方 **的元素进行递推
+
+## [416. 分割等和子集 ](https://leetcode.cn/problems/partition-equal-subset-sum/) TODO 
+
+**01背包**经典题(物品没有重复 , 只有取 or 不取)
+
+`dp[i][j]` 表示：**从下标 `0 ~ i` 的这些数里选若干个，是否能够凑出和 `j`** , 因此我们判断TF只需要得到`dp[n-1][target]`的值即可
+
+转移方程 :  `dp[i][j]=dp[i-1][j] or dp[i-1][j-nums[i]]`
+
+```python
+class Solution:
+    def canPartition(self, nums: List[int]) -> bool:
+        s=sum(nums)
+        if s%2==1: 
+            return False
+        #目标值,即背包大小
+        target=s//2
+        #物品数(数字数)
+        n=len(nums)
+        if n < 2:
+            return False
+        if target<max(nums):
+            return False
+        # 两个子集的元素和相等 - > 价值=重量,在重量=11处找价值也=11的列,有则return True
+        dp=[[False]*(target+1) for _ in range(n)]
+        #初始化首行首列
+        for i in range(1,n):
+            if i >nums[0]:
+                dp[i][0]=True
+        #其他都是False
+        dp[0][nums[0]] = True
+
+
+
+        for i in range(1,n):
+            for j in range(1,target+1):
+                if j>=nums[i]:#防止越界
+                    #不带这个数字           之前的数字加上现在这个数字
+                    dp[i][j]=dp[i-1][j] or dp[i-1][j-nums[i]]
+                else:
+                    dp[i][j]=dp[i-1][j]
+
+
+        return dp[n-1][target]
+```
+
+一维背包:二维时更新dp的时候需要左上方的元素值，如果从左往右，这一格左边的值就会被覆盖(可能会使得物品被添加不止一次)
+
+```python
+class Solution:
+    def canPartition(self, nums: List[int]) -> bool:
+        n = len(nums)
+        if n < 2:
+            return False
+        
+        total = sum(nums)
+        if total % 2 != 0:
+            return False
+        
+        #初始化状态矩阵
+        target = total // 2
+        dp = [True] + [False] * target
+
+
+        for i ,num in enumerate(nums):
+            #倒叙遍历也十分重要,基本必备的
+            # 二维的情况你更新dp的时候需要上面一格和这一格左边的元素值，如果从左往右，这一格左边的值就会被覆盖
+            for j in range(target,num-1,-1):
+                # dp[j-num]算上当前num , dp[j]即之前的状态
+                dp[j] = dp[j] or dp[j-num]
+
+        return dp[target]
+```
+
+
+
+## [1049. 最后一块石头的重量 II](https://leetcode.cn/problems/last-stone-weight-ii/) TODO
+
+其实题目和上一题类似,将石头分成重量 最相近的两堆,重量差即最小的可能重量
+
+```python
+class Solution:
+    def lastStoneWeightII(self, stones: List[int]) -> int:
+        n=len(stones)
+        if n==1:
+            return stones[0]
+        total=sum(stones)
+        #target和上一题一样
+        target=total//2
+        dp=[True]+[False]*target
+
+        for i,num in enumerate(stones):
+            for j in range(target,num-1,-1):
+                dp[j]|=dp[j-num]
+
+
+        for i in range(target,-1,-1):
+            if dp[i]:
+                return total-i*2
+        
+```
+
+
+
+## [494. 目标和 ](https://leetcode.cn/problems/target-sum/) TODO
+
+和上一题类似 : 加法放一个集合,减法放一个集合
+
+加法集合为`left` 减法集合为`right` 则target=left-right = left-(sum-left) - > left=(target + sum)/2
+
+dp[i]:值为i的组合数
+状态转移 `dp[j]+=dp[j-num[i]]`
+
+```python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        left=(sum(nums)+target)//2
+        total=sum(nums)+target
+        #退出条件
+        if abs(target) > sum(nums):
+            return 0
+        if total %2==1:
+            return 0
+        if left < 0:
+            return 0
+        
+        
+        dp=[1]+[0]*left
+        for num in nums:
+            for j in range(left,num-1,-1):
+                dp[j]+=dp[j-num]
+        return dp[left]
+
+```
+
+
+
+## [474. 一和零](https://leetcode.cn/problems/ones-and-zeroes/) TODO
+
+和之前的类似,但是背包维度多了一维
+
+```python
+class Solution:
+    def findMaxForm(self, strs: List[str], m: int, n: int) -> int:
+        dp=[[0 for _ in range(m+1)] for _ in range(n+1)]
+        for num in strs:
+            cm,cn=num.count('0'),num.count('1')
+            for i in range(n,cn-1,-1):
+                for j in range(m,cm-1,-1):
+                    dp[i][j] = max(dp[i][j], dp[i - cn][j - cm] + 1)
+        return dp[n][m]
+```
+
+
+
+# 完全背包
+
+有N件物品和一个最多能背重量为W的背包。第i件物品的重量是weight[i]，得到的价值是value[i] 。**每件物品都有无限个（也就是可以放入背包多次）**，求解将哪些物品装入背包里物品价值总和最大。
+
+一维dp的内部循环改成正序即可,其余不变
+
+完全背包:先物品后背包 更方便 , 
+
+
+
+## [518. 零钱兑换 II](https://leetcode.cn/problems/coin-change-ii/)
+
+```python
+class Solution:
+    def change(self, amount: int, coins: List[int]) -> int:
+        dp=[0]*(amount+1)
+        dp[0]=1
+        for coin in coins:
+            for j in range(coin,amount+1):
+                dp[j]+=dp[j-coin]
+        return dp[amount]
+```
+
+
+
+## [377. 组合总和 Ⅳ](https://leetcode.cn/problems/combination-sum-iv/) TODO
+
+这题实际上是求排列而非求组合 :**顺序不同的序列被视作不同的组合**
+
+上一题的先物品后背包的结果是组合数 ; 这一题换成先背包后物品即可得到排列数(每一次都可以再使用相同的数字且计数重复,因此是排列)
+
+```python
+class Solution:
+    def combinationSum4(self, nums: List[int], target: int) -> int:
+        dp=[0]*(target+1)
+        dp[0]=1
+        for i in range(1,target+1):
+            for num in nums:
+                
+                if num<=i:
+                    dp[i]+=dp[i-num]
+        return dp[target]
+
+```
+
+
+
+## [322. 零钱兑换](https://leetcode.cn/problems/coin-change/)
+
+```python
+class Solution:
+    def coinChange(self, coins: List[int], amount: int) -> int:
+        if amount==0:
+            return 0
+        #求最小值,因此用inf做初始化 ,用amount+1也可以 , 毕竟最小值为1
+        dp=[0]+[inf]*amount
+        for i in range(1,amount+1):
+            for coin in coins:
+                if i-coin>=0:
+                    #用这个coin找零
+                    dp[i]=min(dp[i-coin]+1,dp[i])
+        if  dp[amount]!=inf:    
+            return dp[amount]  
+        else : 
+            return -1
+```
+
+
+
+## [279. 完全平方数](https://leetcode.cn/problems/perfect-squares/)
+
+```python
+class Solution:
+    def numSquares(self, n: int) -> int:
+        counts=[i**2 for i in range(1,101)]
+        dp=[0]+[n+1]*n
+        for i in range(1,n+1):
+            for count in counts:
+                if i-count>=0:
+                    dp[i]=min(dp[i],dp[i-count]+1)
+        return dp[n]
+```
+
+
+
+
+
+
+
+dp的题目要看一下,**光子2面**
+
+只要求返回结果，不要求得到最大的连续子数组是哪一个。这样的问题通常可以使用「动态规划」解决
+
+## [300. 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)
+
+![image-20260320105731822](./note.assets/image-20260320105731822.png)
